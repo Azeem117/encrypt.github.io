@@ -50,8 +50,8 @@
         }
         .input:focus, .textarea:focus {
             outline: none;
-            border-color: #6a6a6a;
-            box-shadow: 0 0 0 2px rgba(106, 106, 106, 0.5);
+            border-color: #6d28d9;
+            box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.5);
         }
         .textarea {
             resize: vertical;
@@ -61,6 +61,7 @@
             display: flex;
             gap: 1rem;
             justify-content: space-between;
+            flex-wrap: wrap;
         }
         .btn {
             flex-grow: 1;
@@ -98,6 +99,8 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
         }
         .result-title {
             font-weight: 500;
@@ -125,7 +128,7 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .copy-btn {
+        .copy-btn, .file-btn, .visibility-btn {
             background-color: transparent;
             border: 1px solid #444444;
             color: #a0a0a0;
@@ -133,10 +136,32 @@
             border-radius: 0.5rem;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        .copy-btn:hover {
+        .copy-btn:hover, .file-btn:hover, .visibility-btn:hover {
             background-color: #333333;
             transform: scale(1.05);
+        }
+        .password-input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #6d28d9;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin-left: 1rem;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -145,51 +170,91 @@
 <div class="container">
     <h1 class="text-3xl font-bold text-center mb-8">Encryption</h1>
 
+    <!-- File Input Section -->
+    <div class="form-group">
+        <label for="fileInput" class="label">Select a File (or enter text below):</label>
+        <div class="relative">
+            <input type="file" id="fileInput" class="hidden" />
+            <button id="fileBtn" class="file-btn w-full justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414L9.586 2.586a1 1 0 011.414 0l3.293 3.293a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L6.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+                Choose File
+            </button>
+        </div>
+        <div id="fileName" class="text-sm mt-2 text-gray-400">No file selected.</div>
+    </div>
+
+    <!-- Message Textarea Section -->
     <div class="form-group">
         <label for="message" class="label">Message:</label>
         <textarea id="message" class="textarea" placeholder="Enter your message here..."></textarea>
     </div>
 
+    <!-- Password Input Section with Visibility Toggle -->
     <div class="form-group">
         <label for="password" class="label">Password:</label>
-        <input type="password" id="password" class="input" placeholder="Enter a password...">
+        <div class="password-input-group">
+            <input type="password" id="password" class="input flex-grow" placeholder="Enter a password...">
+            <button id="passwordToggle" class="visibility-btn">
+                <!-- Eye icon (visible) -->
+                <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                </svg>
+                <!-- Eye-slash icon (hidden) -->
+                <svg id="eye-slash-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3.707 2.293A1 1 0 002.293 3.707l14 14a1 1 0 001.414-1.414l-14-14z" clip-rule="evenodd" />
+                    <path d="M10 13a3 3 0 100-6 3 3 0 000 6z" />
+                    <path fill-rule="evenodd" d="M13.673 17.51a.692.692 0 00-.776-.457A9.914 9.914 0 0110 18c-4.478 0-8.268-2.943-9.542-7-.052-.16-.079-.328-.083-.497a.692.692 0 00-.472-.515.692.692 0 00-.516.474c-.004.02-.007.039-.011.059.004.053.011.106.023.159C1.732 14.057 5.522 17 10 17c.502 0 .99-.036 1.464-.105a.692.692 0 00.709.619.692.692 0 00.618-.71zM10 4a6 6 0 00-6 6c0 1.259.324 2.44.887 3.518a.692.692 0 00.62.433.692.692 0 00.414-.153c.125-.1.2-.23.218-.372.584-2.887 3.23-5.06 6.37-5.06a.692.692 0 00.692-.692.692.692 0 00-.692-.692c-2.31 0-4.322 1.4-5.228 3.5a.692.692 0 00.088.583.692.692 0 00.583.088 6.002 6.002 0 00-2.844 2.845.692.692 0 00-.088.583.692.692 0 00.583.088c.126.04.253.078.38.115A5.998 5.998 0 0010 4z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
     </div>
 
-    <div class="btn-group">
-        <button id="encryptBtn" class="btn btn-primary">Encrypt</button>
-        <button id="decryptBtn" class="btn btn-secondary">Decrypt</button>
+    <!-- Action Buttons and Loading Spinner -->
+    <div class="flex items-center justify-between">
+        <div class="btn-group flex-grow">
+            <button id="encryptBtn" class="btn btn-primary">Encrypt</button>
+            <button id="decryptBtn" class="btn btn-secondary">Decrypt</button>
+            <button id="clearBtn" class="btn btn-secondary">Clear</button>
+        </div>
+        <div id="loadingSpinner" class="loading-spinner hidden"></div>
     </div>
 
-    <!-- The 'resultBox' now includes a copy button -->
+    <!-- Result Box -->
     <div id="resultBox" class="result-box hidden mt-6">
         <div class="result-title">
             Result:
             <button id="copyBtn" class="copy-btn">
-                <!-- SVG icon for the copy button -->
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2m-2 0h-2m2 0h2m-2 0v2m2 0v2" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                    <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3h-2a3 3 0 01-3-3z" />
                 </svg>
                 Copy
             </button>
         </div>
         <div id="resultText" class="result-text"></div>
+        <a id="downloadLink" href="#" download="encrypted.bin" class="btn btn-primary hidden text-center mt-2 no-underline">Download Encrypted File</a>
     </div>
     
     <div id="messageBox" class="message-box"></div>
 </div>
 
 <script>
-    // Utility function to convert a string to a Uint8Array
+    // --- Helper Functions ---
+
+    // Converts a string to a Uint8Array.
     function strToUint8(str) {
         return new TextEncoder().encode(str);
     }
 
-    // Utility function to convert a Uint8Array to a string
+    // Converts a Uint8Array to a string.
     function uint8ToStr(uint8) {
         return new TextDecoder().decode(uint8);
     }
 
-    // Utility function to convert ArrayBuffer to Base64 string
+    // Converts an ArrayBuffer to a Base64 string.
     function arrayBufferToBase64(buffer) {
         let binary = '';
         const bytes = new Uint8Array(buffer);
@@ -200,7 +265,7 @@
         return window.btoa(binary);
     }
 
-    // Utility function to convert Base64 string to ArrayBuffer
+    // Converts a Base64 string to an ArrayBuffer.
     function base64ToArrayBuffer(base64) {
         const binaryString = window.atob(base64);
         const len = binaryString.length;
@@ -211,7 +276,17 @@
         return bytes.buffer;
     }
 
-    // Displays a message to the user for a short period
+    // Reads a file as an ArrayBuffer.
+    function readFileAsArrayBuffer(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    // Displays a temporary message to the user.
     function showMessage(text, isError = false) {
         const messageBox = document.getElementById('messageBox');
         messageBox.textContent = text;
@@ -221,20 +296,15 @@
         } else {
             messageBox.style.backgroundColor = '#2c2c2c'; // Dark gray for success/info
         }
-        messageBox.style.animation = 'slideIn 0.3s ease-out';
         setTimeout(() => {
-            messageBox.style.animation = 'slideOut 0.3s ease-in';
-            setTimeout(() => {
-                messageBox.style.display = 'none';
-            }, 300);
+            messageBox.style.display = 'none';
         }, 3000);
     }
 
-    // Function to derive a key from the user's password using PBKDF2
-    async function getKey(password) {
-        // PBKDF2 salt should be unique per key, but for this simple app, we use a fixed salt.
-        // In a real-world app, this would be generated and stored with the ciphertext.
-        const salt = strToUint8('fixed-salt-for-demo');
+    // --- Core Cryptographic Functions ---
+
+    // Derives a key from the user's password using PBKDF2 with a random salt.
+    async function getKey(password, salt) {
         const keyMaterial = await window.crypto.subtle.importKey(
             "raw",
             strToUint8(password),
@@ -256,20 +326,19 @@
         );
     }
 
-    // Function to encrypt the message
-    async function encryptMessage(message, password) {
+    // Encrypts a message (string or ArrayBuffer).
+    async function encryptMessage(data, password) {
         try {
-            // Check if message and password are provided
-            if (!message || !password) {
-                showMessage("Please enter both a message and a password.", true);
+            if (!password) {
+                showMessage("Please enter a password.", true);
                 return;
             }
 
-            const key = await getKey(password);
-            const data = strToUint8(message);
-
-            // The IV (Initialization Vector) should be unique for each encryption.
-            // For this simple demo, we generate a new one each time.
+            // Generate a unique salt for this encryption.
+            const salt = window.crypto.getRandomValues(new Uint8Array(16));
+            const key = await getKey(password, salt);
+            
+            // Generate a unique IV (Initialization Vector) for this encryption.
             const iv = window.crypto.getRandomValues(new Uint8Array(12));
 
             const encryptedData = await window.crypto.subtle.encrypt(
@@ -281,10 +350,11 @@
                 data
             );
 
-            // Combine the IV and encrypted data into a single string for storage/transfer
-            const combined = new Uint8Array(iv.byteLength + encryptedData.byteLength);
-            combined.set(iv, 0);
-            combined.set(new Uint8Array(encryptedData), iv.byteLength);
+            // Combine the salt, IV, and encrypted data.
+            const combined = new Uint8Array(salt.byteLength + iv.byteLength + encryptedData.byteLength);
+            combined.set(salt, 0);
+            combined.set(iv, salt.byteLength);
+            combined.set(new Uint8Array(encryptedData), salt.byteLength + iv.byteLength);
 
             return arrayBufferToBase64(combined);
         } catch (error) {
@@ -293,22 +363,28 @@
         }
     }
 
-    // Function to decrypt the message
+    // Decrypts an encrypted message (Base64 string).
     async function decryptMessage(encryptedMessage, password) {
         try {
-            // Check if encrypted message and password are provided
             if (!encryptedMessage || !password) {
                 showMessage("Please enter both the encrypted message and the password.", true);
                 return;
             }
-
-            const key = await getKey(password);
+            
             const combined = base64ToArrayBuffer(encryptedMessage);
+            if (combined.byteLength < 28) { // 16 bytes for salt + 12 for IV
+                showMessage("Decryption failed. The message appears to be corrupted.", true);
+                return;
+            }
 
-            // Separate the IV and the encrypted data
-            const iv = combined.slice(0, 12);
-            const encryptedData = combined.slice(12);
+            // Separate the salt, IV, and encrypted data.
+            const salt = combined.slice(0, 16);
+            const iv = combined.slice(16, 28);
+            const encryptedData = combined.slice(28);
 
+            const key = await getKey(password, salt);
+
+            // The 'decrypt' function automatically checks the authentication tag for data integrity.
             const decryptedData = await window.crypto.subtle.decrypt(
                 {
                     name: "AES-GCM",
@@ -318,68 +394,120 @@
                 encryptedData
             );
 
-            return uint8ToStr(new Uint8Array(decryptedData));
+            return decryptedData;
         } catch (error) {
             console.error("Decryption failed:", error);
+            // This is a generic catch-all, but usually indicates bad password or corrupted data.
             showMessage("Decryption failed. Incorrect password or corrupted message.", true);
         }
     }
 
-    // --- New Functionality to handle the "Copy" button ---
-    async function copyToClipboard(elementId) {
-        const textToCopy = document.getElementById(elementId).textContent;
-        // Use document.execCommand('copy') for better compatibility in sandboxed environments
-        try {
-            const tempInput = document.createElement('textarea');
-            tempInput.value = textToCopy;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-            showMessage("Copied to clipboard!");
-        } catch (err) {
-            console.error('Failed to copy text: ', err);
-            showMessage("Failed to copy. Please try again.", true);
+    // --- UI State Management Functions ---
+
+    // Shows/hides the loading spinner and disables/enables buttons.
+    function toggleLoading(isLoading) {
+        const spinner = document.getElementById('loadingSpinner');
+        const buttons = document.querySelectorAll('.btn-group .btn');
+        if (isLoading) {
+            spinner.classList.remove('hidden');
+            buttons.forEach(btn => btn.disabled = true);
+        } else {
+            spinner.classList.add('hidden');
+            buttons.forEach(btn => btn.disabled = false);
         }
     }
 
-    // --- Event listeners for the buttons ---
+    // Clears all inputs and result area.
+    function clearApp() {
+        document.getElementById('message').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('resultBox').classList.add('hidden');
+        document.getElementById('resultText').textContent = '';
+        document.getElementById('fileInput').value = '';
+        document.getElementById('fileName').textContent = 'No file selected.';
+        document.getElementById('downloadLink').classList.add('hidden');
+        document.getElementById('downloadLink').href = '#';
+    }
+
+    // --- Event Listeners ---
+
+    // Handles the file input click
+    document.getElementById('fileBtn').addEventListener('click', () => {
+        document.getElementById('fileInput').click();
+    });
+
+    // Displays the selected file name.
+    document.getElementById('fileInput').addEventListener('change', (event) => {
+        const fileNameSpan = document.getElementById('fileName');
+        const file = event.target.files[0];
+        if (file) {
+            fileNameSpan.textContent = file.name;
+            document.getElementById('message').value = ''; // Clear text input if a file is selected
+        } else {
+            fileNameSpan.textContent = 'No file selected.';
+        }
+    });
+
+    // Handles the password visibility toggle.
+    document.getElementById('passwordToggle').addEventListener('click', () => {
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eye-icon');
+        const eyeSlashIcon = document.getElementById('eye-slash-icon');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.classList.add('hidden');
+            eyeSlashIcon.classList.remove('hidden');
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.classList.remove('hidden');
+            eyeSlashIcon.classList.add('hidden');
+        }
+    });
+
+    // Handles the "Encrypt" button click.
     document.getElementById('encryptBtn').addEventListener('click', async () => {
-        const messageInput = document.getElementById('message');
+        toggleLoading(true);
+        const fileInput = document.getElementById('fileInput');
         const passwordInput = document.getElementById('password');
+        const messageInput = document.getElementById('message');
         const resultBox = document.getElementById('resultBox');
         const resultText = document.getElementById('resultText');
+        const downloadLink = document.getElementById('downloadLink');
 
-        const encrypted = await encryptMessage(messageInput.value, passwordInput.value);
-        if (encrypted) {
-            resultText.textContent = encrypted;
-            resultBox.classList.remove('hidden');
-            messageInput.value = ''; // Clear the message input after encryption
-            showMessage("Message encrypted successfully!");
+        let dataToEncrypt;
+        let isFile = false;
+
+        if (fileInput.files.length > 0) {
+            isFile = true;
+            const file = fileInput.files[0];
+            dataToEncrypt = await readFileAsArrayBuffer(file);
+        } else {
+            dataToEncrypt = strToUint8(messageInput.value);
         }
+
+        if (dataToEncrypt && passwordInput.value) {
+            const encryptedData = await encryptMessage(dataToEncrypt, passwordInput.value);
+            if (encryptedData) {
+                resultText.textContent = encryptedData;
+                resultBox.classList.remove('hidden');
+                
+                // Show download link for file encryption.
+                if (isFile) {
+                    const blob = new Blob([base64ToArrayBuffer(encryptedData)], { type: 'application/octet-stream' });
+                    downloadLink.href = URL.createObjectURL(blob);
+                    downloadLink.classList.remove('hidden');
+                    downloadLink.textContent = `Download Encrypted File`;
+                    resultText.textContent = `File encrypted successfully. You can download it below.`;
+                } else {
+                    downloadLink.classList.add('hidden');
+                }
+                showMessage("Message encrypted successfully!");
+            }
+        }
+        toggleLoading(false);
     });
 
+    // Handles the "Decrypt" button click.
     document.getElementById('decryptBtn').addEventListener('click', async () => {
-        const messageInput = document.getElementById('message');
-        const passwordInput = document.getElementById('password');
-        const resultBox = document.getElementById('resultBox');
-        const resultText = document.getElementById('resultText');
-
-        const decrypted = await decryptMessage(messageInput.value, passwordInput.value);
-        if (decrypted) {
-            resultText.textContent = decrypted;
-            resultBox.classList.remove('hidden');
-            messageInput.value = ''; // Clear the message input after decryption
-            showMessage("Message decrypted successfully!");
-        }
-    });
-
-    // Event listener for the new copy button
-    document.getElementById('copyBtn').addEventListener('click', () => {
-        copyToClipboard('resultText');
-    });
-
-</script>
-
-</body>
-</html>
+        toggleLoading(true);
+      
