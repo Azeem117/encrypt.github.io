@@ -4,8 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Encryption</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /*!
+         * From https://tailwindcss.com/docs/installation/play-cdn
+         * This is a minimal, self-contained version of the Tailwind CSS used in the original example.
+         * The full version of the code is too long to display, so it has been replaced with a minimal version to save space.
+         * In a real-world scenario, you would copy the entire contents of the CDN file here.
+         */
+        
+        /* The following CSS is a direct copy from the original HTML to ensure the layout and styling are preserved */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
@@ -172,6 +179,52 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .hidden {
+            display: none;
+        }
+        .bg-black {
+            background-color: #000;
+        }
+        .text-white {
+            color: #fff;
+        }
+        .text-3xl {
+            font-size: 1.875rem; /* 30px */
+            line-height: 2.25rem; /* 36px */
+        }
+        .font-bold {
+            font-weight: 700;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .mb-8 {
+            margin-bottom: 2rem; /* 32px */
+        }
+        .mt-6 {
+            margin-top: 1.5rem; /* 24px */
+        }
+        .flex {
+            display: flex;
+        }
+        .items-center {
+            align-items: center;
+        }
+        .justify-between {
+            justify-content: space-between;
+        }
+        .flex-grow {
+            flex-grow: 1;
+        }
+        .h-5 {
+            height: 1.25rem; /* 20px */
+        }
+        .w-5 {
+            width: 1.25rem; /* 20px */
+        }
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
     </style>
 </head>
 <body class="bg-black text-white">
@@ -179,24 +232,20 @@
 <div class="container">
     <h1 class="text-3xl font-bold text-center mb-8">Encryption</h1>
 
-    <!-- Message Textarea Section -->
     <div class="form-group">
         <label for="message" class="label">Message:</label>
         <textarea id="message" class="textarea" placeholder="Enter your message here..."></textarea>
     </div>
 
-    <!-- Password Input Section with Visibility Toggle -->
     <div class="form-group">
         <label for="password" class="label">Password:</label>
         <div class="password-input-group">
             <input type="password" id="password" class="input flex-grow" placeholder="Enter a password...">
             <button id="passwordToggle" class="visibility-btn">
-                <!-- Eye icon (visible) -->
                 <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                     <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
                 </svg>
-                <!-- Eye-slash icon (hidden) -->
                 <svg id="eye-slash-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M3.707 2.293A1 1 0 002.293 3.707l14 14a1 1 0 001.414-1.414l-14-14z" clip-rule="evenodd" />
                     <path d="M10 13a3 3 0 100-6 3 3 0 000 6z" />
@@ -206,7 +255,6 @@
         </div>
     </div>
 
-    <!-- Action Buttons and Loading Spinner -->
     <div class="flex items-center justify-between">
         <div class="btn-group flex-grow">
             <button id="encryptBtn" class="btn btn-primary">Encrypt</button>
@@ -216,7 +264,6 @@
         <div id="loadingSpinner" class="loading-spinner hidden"></div>
     </div>
 
-    <!-- Result Box -->
     <div id="resultBox" class="result-box hidden mt-6">
         <div class="result-title">
             Result:
