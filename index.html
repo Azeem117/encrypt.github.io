@@ -128,7 +128,7 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .copy-btn, .file-btn, .visibility-btn {
+        .copy-btn, .visibility-btn {
             background-color: transparent;
             border: 1px solid #444444;
             color: #a0a0a0;
@@ -140,14 +140,23 @@
             align-items: center;
             gap: 0.5rem;
         }
-        .copy-btn:hover, .file-btn:hover, .visibility-btn:hover {
+        .copy-btn:hover, .visibility-btn:hover {
             background-color: #333333;
             transform: scale(1.05);
         }
         .password-input-group {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+        }
+        .password-input-group .input {
+            padding-right: 3rem;
+        }
+        .password-input-group .visibility-btn {
+            position: absolute;
+            right: 0.5rem;
+            border: none;
+            background-color: transparent;
         }
         .loading-spinner {
             border: 4px solid rgba(255, 255, 255, 0.3);
@@ -169,21 +178,6 @@
 
 <div class="container">
     <h1 class="text-3xl font-bold text-center mb-8">Encryption</h1>
-
-    <!-- File Input Section -->
-    <div class="form-group">
-        <label for="fileInput" class="label">Select a File (or enter text below):</label>
-        <div class="relative">
-            <input type="file" id="fileInput" class="hidden" />
-            <button id="fileBtn" class="file-btn w-full justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414L9.586 2.586a1 1 0 011.414 0l3.293 3.293a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L6.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                </svg>
-                Choose File
-            </button>
-        </div>
-        <div id="fileName" class="text-sm mt-2 text-gray-400">No file selected.</div>
-    </div>
 
     <!-- Message Textarea Section -->
     <div class="form-group">
@@ -235,7 +229,6 @@
             </button>
         </div>
         <div id="resultText" class="result-text"></div>
-        <a id="downloadLink" href="#" download="encrypted.bin" class="btn btn-primary hidden text-center mt-2 no-underline">Download Encrypted File</a>
     </div>
     
     <div id="messageBox" class="message-box"></div>
@@ -274,16 +267,6 @@
             bytes[i] = binaryString.charCodeAt(i);
         }
         return bytes.buffer;
-    }
-
-    // Reads a file as an ArrayBuffer.
-    function readFileAsArrayBuffer(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsArrayBuffer(file);
-        });
     }
 
     // Displays a temporary message to the user.
@@ -394,10 +377,10 @@
                 encryptedData
             );
 
-            return decryptedData;
+            return uint8ToStr(new Uint8Array(decryptedData));
         } catch (error) {
             console.error("Decryption failed:", error);
-            // This is a generic catch-all, but usually indicates bad password or corrupted data.
+            // This is a generic catch-all, but usually indicates a bad password or corrupted data.
             showMessage("Decryption failed. Incorrect password or corrupted message.", true);
         }
     }
@@ -423,30 +406,9 @@
         document.getElementById('password').value = '';
         document.getElementById('resultBox').classList.add('hidden');
         document.getElementById('resultText').textContent = '';
-        document.getElementById('fileInput').value = '';
-        document.getElementById('fileName').textContent = 'No file selected.';
-        document.getElementById('downloadLink').classList.add('hidden');
-        document.getElementById('downloadLink').href = '#';
     }
 
     // --- Event Listeners ---
-
-    // Handles the file input click
-    document.getElementById('fileBtn').addEventListener('click', () => {
-        document.getElementById('fileInput').click();
-    });
-
-    // Displays the selected file name.
-    document.getElementById('fileInput').addEventListener('change', (event) => {
-        const fileNameSpan = document.getElementById('fileName');
-        const file = event.target.files[0];
-        if (file) {
-            fileNameSpan.textContent = file.name;
-            document.getElementById('message').value = ''; // Clear text input if a file is selected
-        } else {
-            fileNameSpan.textContent = 'No file selected.';
-        }
-    });
 
     // Handles the password visibility toggle.
     document.getElementById('passwordToggle').addEventListener('click', () => {
@@ -467,42 +429,16 @@
     // Handles the "Encrypt" button click.
     document.getElementById('encryptBtn').addEventListener('click', async () => {
         toggleLoading(true);
-        const fileInput = document.getElementById('fileInput');
         const passwordInput = document.getElementById('password');
         const messageInput = document.getElementById('message');
         const resultBox = document.getElementById('resultBox');
         const resultText = document.getElementById('resultText');
-        const downloadLink = document.getElementById('downloadLink');
 
-        let dataToEncrypt;
-        let isFile = false;
-
-        if (fileInput.files.length > 0) {
-            isFile = true;
-            const file = fileInput.files[0];
-            dataToEncrypt = await readFileAsArrayBuffer(file);
-        } else {
-            dataToEncrypt = strToUint8(messageInput.value);
-        }
-
-        if (dataToEncrypt && passwordInput.value) {
-            const encryptedData = await encryptMessage(dataToEncrypt, passwordInput.value);
-            if (encryptedData) {
-                resultText.textContent = encryptedData;
-                resultBox.classList.remove('hidden');
-                
-                // Show download link for file encryption.
-                if (isFile) {
-                    const blob = new Blob([base64ToArrayBuffer(encryptedData)], { type: 'application/octet-stream' });
-                    downloadLink.href = URL.createObjectURL(blob);
-                    downloadLink.classList.remove('hidden');
-                    downloadLink.textContent = `Download Encrypted File`;
-                    resultText.textContent = `File encrypted successfully. You can download it below.`;
-                } else {
-                    downloadLink.classList.add('hidden');
-                }
-                showMessage("Message encrypted successfully!");
-            }
+        const encryptedData = await encryptMessage(strToUint8(messageInput.value), passwordInput.value);
+        if (encryptedData) {
+            resultText.textContent = encryptedData;
+            resultBox.classList.remove('hidden');
+            showMessage("Message encrypted successfully!");
         }
         toggleLoading(false);
     });
@@ -510,4 +446,39 @@
     // Handles the "Decrypt" button click.
     document.getElementById('decryptBtn').addEventListener('click', async () => {
         toggleLoading(true);
-     
+        const passwordInput = document.getElementById('password');
+        const messageInput = document.getElementById('message');
+        const resultBox = document.getElementById('resultBox');
+        const resultText = document.getElementById('resultText');
+
+        const decryptedData = await decryptMessage(messageInput.value, passwordInput.value);
+        if (decryptedData) {
+            resultText.textContent = decryptedData;
+            resultBox.classList.remove('hidden');
+            showMessage("Message decrypted successfully!");
+        }
+        toggleLoading(false);
+    });
+
+    // Handles the "Clear" button click.
+    document.getElementById('clearBtn').addEventListener('click', clearApp);
+
+    // Copies the result to the clipboard.
+    document.getElementById('copyBtn').addEventListener('click', () => {
+        const textToCopy = document.getElementById('resultText').textContent;
+        try {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = textToCopy;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showMessage("Copied to clipboard!");
+        } catch (err) {
+            showMessage("Failed to copy. Please try again.", true);
+        }
+    });
+</script>
+
+</body>
+</html>
